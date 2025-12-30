@@ -1,16 +1,11 @@
-// lib/rate-limit.ts
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
-import { env } from "@/env";
+// No-op rate limit implementation
+// Redis dependency has been removed - this is a placeholder that always allows requests
 
-const redis = new Redis({
-  url: env.UPSTASH_REDIS_REST_URL,
-  token: env.UPSTASH_REDIS_REST_TOKEN,
-});
-
-export const baseRateLimit = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(100, "1 m"), // 100 requests per minute
-  analytics: true,
-  prefix: "rate-limit",
-});
+export const baseRateLimit = {
+  limit: async (_key: string) => ({
+    success: true,
+    limit: 100,
+    remaining: 100,
+    reset: Date.now() + 60000,
+  }),
+};

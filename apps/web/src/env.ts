@@ -13,8 +13,6 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["development", "production", "test"])
       .default("development"),
-    UPSTASH_REDIS_REST_URL: z.string().url(),
-    UPSTASH_REDIS_REST_TOKEN: z.string(),
     FREESOUND_CLIENT_ID: z.string(),
     FREESOUND_API_KEY: z.string(),
     // R2 / Cloudflare
@@ -30,8 +28,6 @@ export const env = createEnv({
     ANALYZE: process.env.ANALYZE,
     NEXT_RUNTIME: process.env.NEXT_RUNTIME,
     NODE_ENV: process.env.NODE_ENV,
-    UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
-    UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
     FREESOUND_CLIENT_ID: process.env.FREESOUND_CLIENT_ID,
     FREESOUND_API_KEY: process.env.FREESOUND_API_KEY,
     // R2 / Cloudflare

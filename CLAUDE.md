@@ -111,10 +111,6 @@ DATABASE_URL="postgresql://opencut:opencutthegoat@localhost:5432/opencut"
 BETTER_AUTH_SECRET="your-generated-secret-here"
 BETTER_AUTH_URL="http://localhost:3000"
 
-# Redis
-UPSTASH_REDIS_REST_URL="http://localhost:8079"
-UPSTASH_REDIS_REST_TOKEN="example_token"
-
 # Content Management
 MARBLE_WORKSPACE_KEY="workspace-key"
 NEXT_PUBLIC_MARBLE_API_URL="https://api.marblecms.com"
@@ -122,7 +118,7 @@ NEXT_PUBLIC_MARBLE_API_URL="https://api.marblecms.com"
 
 **Docker services:**
 ```bash
-# Start local database and Redis
+# Start local database
 docker-compose up -d
 ```
 
