@@ -6,7 +6,6 @@
       "outputs": [".next/**", "!.next/cache/**"],
       "env": [
         "DATABASE_URL",
-        "BETTER_AUTH_SECRET",
         "MARBLE_WORKSPACE_KEY",
         "FREESOUND_CLIENT_ID",
         "FREESOUND_API_KEY",

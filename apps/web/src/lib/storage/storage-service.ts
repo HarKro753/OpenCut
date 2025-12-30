@@ -2,6 +2,7 @@ import { TProject } from "@/types/project";
 import { MediaFile } from "@/types/media";
 import { IndexedDBAdapter } from "./indexeddb-adapter";
 import { OPFSAdapter } from "./opfs-adapter";
+import { RemoteProjectsAdapter } from "./remote-projects-adapter";
 import {
   MediaFileData,
   StorageConfig,
@@ -13,24 +14,21 @@ import { TimelineTrack } from "@/types/timeline";
 import { SavedSoundsData, SavedSound, SoundEffect } from "@/types/sounds";
 
 class StorageService {
-  private projectsAdapter: IndexedDBAdapter<SerializedProject>;
+  private projectsAdapter: RemoteProjectsAdapter;
   private savedSoundsAdapter: IndexedDBAdapter<SavedSoundsData>;
   private config: StorageConfig;
 
   constructor() {
     this.config = {
-      projectsDb: "video-editor-projects",
+      projectsDb: "video-editor-projects", // No longer used for projects, kept for other storage
       mediaDb: "video-editor-media",
       timelineDb: "video-editor-timelines",
       savedSoundsDb: "video-editor-saved-sounds",
       version: 1,
     };
 
-    this.projectsAdapter = new IndexedDBAdapter<SerializedProject>(
-      this.config.projectsDb,
-      "projects",
-      this.config.version
-    );
+    // Use remote adapter for projects (server-backed)
+    this.projectsAdapter = new RemoteProjectsAdapter();
 
     this.savedSoundsAdapter = new IndexedDBAdapter<SavedSoundsData>(
       this.config.savedSoundsDb,
@@ -138,14 +136,38 @@ class StorageService {
   }
 
   async loadAllProjects(): Promise<TProject[]> {
-    const projectIds = await this.projectsAdapter.list();
+    const serializedProjects = await this.projectsAdapter.loadAll();
     const projects: TProject[] = [];
 
-    for (const id of projectIds) {
-      const project = await this.loadProject({ id });
-      if (project) {
-        projects.push(project);
-      }
+    for (const serializedProject of serializedProjects) {
+      // Convert serialized scenes back to Scene objects
+      const scenes =
+        serializedProject.scenes?.map((scene) => ({
+          id: scene.id,
+          name: scene.name,
+          isMain: scene.isMain,
+          createdAt: new Date(scene.createdAt),
+          updatedAt: new Date(scene.updatedAt),
+        })) || [];
+
+      // Convert back to TProject format
+      const project: TProject = {
+        id: serializedProject.id,
+        name: serializedProject.name,
+        thumbnail: serializedProject.thumbnail,
+        createdAt: new Date(serializedProject.createdAt),
+        updatedAt: new Date(serializedProject.updatedAt),
+        scenes,
+        currentSceneId: serializedProject.currentSceneId || "",
+        backgroundColor: serializedProject.backgroundColor,
+        backgroundType: serializedProject.backgroundType,
+        blurIntensity: serializedProject.blurIntensity,
+        bookmarks: serializedProject.bookmarks,
+        fps: serializedProject.fps,
+        canvasSize: serializedProject.canvasSize,
+        canvasMode: serializedProject.canvasMode,
+      };
+      projects.push(project);
     }
 
     // Sort by last updated (most recent first)
