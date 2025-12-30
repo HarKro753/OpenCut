@@ -269,9 +269,8 @@ export const useTimelineStore = create<TimelineStore>((set, get) => {
     if (activeProject && currentScene) {
       try {
         await storageService.saveTimeline({
-          projectId: activeProject.id,
-          tracks: get()._tracks,
           sceneId: currentScene.id,
+          tracks: get()._tracks,
         });
       } catch (error) {
         console.error("Failed to auto-save timeline:", error);
@@ -1185,8 +1184,12 @@ export const useTimelineStore = create<TimelineStore>((set, get) => {
           sceneId = mainScene?.id;
         }
 
+        if (!sceneId) {
+          console.warn("No scene ID found for timeline loading");
+          return null;
+        }
+
         const tracks = await storageService.loadTimeline({
-          projectId,
           sceneId,
         });
         const mediaItems = await storageService.loadAllMediaFiles({
@@ -1299,8 +1302,12 @@ export const useTimelineStore = create<TimelineStore>((set, get) => {
       sceneId?: string;
     }) => {
       try {
+        if (!sceneId) {
+          console.warn("Cannot load timeline without sceneId");
+          return;
+        }
+
         const tracks = await storageService.loadTimeline({
-          projectId,
           sceneId,
         });
 
@@ -1329,9 +1336,8 @@ export const useTimelineStore = create<TimelineStore>((set, get) => {
       const { _tracks } = get();
       try {
         await storageService.saveTimeline({
-          projectId,
-          tracks: _tracks,
           sceneId,
+          tracks: _tracks,
         });
       } catch (error) {
         console.error("Failed to save timeline:", error);

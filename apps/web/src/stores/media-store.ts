@@ -163,18 +163,9 @@ export const useMediaStore = create<MediaStore>((set, get) => ({
   },
 
   removeMediaFile: async (projectId: string, id: string) => {
-    const state = get();
-    const item = state.mediaFiles.find((media) => media.id === id);
-
     videoCache.clearVideo(id);
 
-    // Cleanup object URLs to prevent memory leaks
-    if (item?.url) {
-      URL.revokeObjectURL(item.url);
-      if (item.thumbnailUrl) {
-        URL.revokeObjectURL(item.thumbnailUrl);
-      }
-    }
+    // Note: No need to revoke R2 URLs - they are permanent URLs, not blob URLs
 
     // 1) Remove from local state immediately
     set((state) => ({
@@ -201,7 +192,7 @@ export const useMediaStore = create<MediaStore>((set, get) => ({
       deleteSelected();
     }
 
-    // 3) Remove from persistent storage
+    // 3) Remove from persistent storage (PostgreSQL + R2)
     try {
       await storageService.deleteMediaFile({ projectId, id });
     } catch (error) {
@@ -215,32 +206,9 @@ export const useMediaStore = create<MediaStore>((set, get) => ({
     try {
       const mediaItems = await storageService.loadAllMediaFiles({ projectId });
 
-      // Regenerate thumbnails for video items
-      const updatedMediaItems = await Promise.all(
-        mediaItems.map(async (item) => {
-          if (item.type === "video" && item.file) {
-            try {
-              const { thumbnailUrl, width, height } =
-                await generateVideoThumbnail(item.file);
-              return {
-                ...item,
-                thumbnailUrl,
-                width: width || item.width,
-                height: height || item.height,
-              };
-            } catch (error) {
-              console.error(
-                `Failed to regenerate thumbnail for video ${item.id}:`,
-                error
-              );
-              return item;
-            }
-          }
-          return item;
-        })
-      );
-
-      set({ mediaFiles: updatedMediaItems });
+      // Media files are now loaded from R2 with permanent URLs
+      // No need to regenerate thumbnails - they're served directly from R2
+      set({ mediaFiles: mediaItems });
     } catch (error) {
       console.error("Failed to load media items:", error);
     } finally {
@@ -249,46 +217,23 @@ export const useMediaStore = create<MediaStore>((set, get) => ({
   },
 
   clearProjectMedia: async (projectId) => {
-    const state = get();
-
-    // Cleanup all object URLs
-    state.mediaFiles.forEach((item) => {
-      if (item.url) {
-        URL.revokeObjectURL(item.url);
-      }
-      if (item.thumbnailUrl) {
-        URL.revokeObjectURL(item.thumbnailUrl);
-      }
-    });
+    // No need to cleanup R2 URLs - they are permanent
 
     // Clear local state
     set({ mediaFiles: [] });
 
-    // Clear persistent storage
+    // Clear persistent storage (PostgreSQL metadata, R2 files remain)
     try {
-      const mediaIds = state.mediaFiles.map((item) => item.id);
-      await Promise.all(
-        mediaIds.map((id) => storageService.deleteMediaFile({ projectId, id }))
-      );
+      await storageService.deleteProjectMedia({ projectId });
     } catch (error) {
       console.error("Failed to clear media items from storage:", error);
     }
   },
 
   clearAllMedia: () => {
-    const state = get();
-
     videoCache.clearAll();
 
-    // Cleanup all object URLs
-    state.mediaFiles.forEach((item) => {
-      if (item.url) {
-        URL.revokeObjectURL(item.url);
-      }
-      if (item.thumbnailUrl) {
-        URL.revokeObjectURL(item.thumbnailUrl);
-      }
-    });
+    // No need to cleanup R2 URLs - they are permanent
 
     // Clear local state
     set({ mediaFiles: [] });

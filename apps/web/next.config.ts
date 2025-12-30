@@ -42,6 +42,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "api.unisvg.com",
       },
+      {
+        protocol: "https",
+        hostname: "**.r2.dev",
+      },
     ],
   },
 };

@@ -297,9 +297,10 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
 
   deleteProject: async (id: string) => {
     try {
+      // Delete project and media
+      // Note: Timelines are cascade deleted when scenes are deleted (which happens when project is deleted)
       await Promise.all([
         storageService.deleteProjectMedia({ projectId: id }),
-        storageService.deleteProjectTimeline({ projectId: id }),
         storageService.deleteProject({ id }),
       ]);
       await get().loadAllProjects(); // Refresh the list

@@ -6,7 +6,7 @@ export interface MediaFile {
   name: string;
   type: MediaType;
   file: File;
-  url?: string; // Object URL for preview
+  url?: string; // R2 URL or Object URL for preview
   thumbnailUrl?: string; // For video thumbnails
   duration?: number; // For video/audio duration
   width?: number; // For video/image width
@@ -14,4 +14,5 @@ export interface MediaFile {
   fps?: number; // For video frame rate
   // Ephemeral items are used by timeline directly and should not appear in the media library or be persisted
   ephemeral?: boolean;
+  sourceStickerIconName?: string; // For tracking sticker sources
 }

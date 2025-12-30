@@ -13,6 +13,7 @@ export interface MediaFileData {
   id: string;
   name: string;
   type: "image" | "video" | "audio";
+  url: string; // R2 URL for the media file
   size: number;
   lastModified: number;
   width?: number;
@@ -20,7 +21,7 @@ export interface MediaFileData {
   duration?: number;
   ephemeral?: boolean;
   sourceStickerIconName?: string;
-  // File will be stored separately in OPFS
+  // File is stored in Cloudflare R2 (not OPFS)
 }
 
 // Legacy timeline data, kept for backward compatibility
